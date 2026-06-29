@@ -371,11 +371,49 @@
   .score-num { font-size: 32px; font-weight: 800; color: #4f8ef7; }
   .score-label { font-size: 13px; color:#888888; }
 
+  /* ===== MOBILE NAV ===== */
+  .mobile-topbar {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+    background: #111111; border-bottom: 1px solid var(--border);
+    padding: 0 16px; height: 52px;
+    align-items: center; justify-content: space-between;
+  }
+  .mobile-topbar-title { font-size: 14px; font-weight: 700; color: #ffffff; }
+  .hamburger {
+    background: none; border: none; cursor: pointer;
+    display: flex; flex-direction: column; gap: 5px; padding: 4px;
+  }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: #ffffff; border-radius: 99px;
+    transition: all 0.25s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0; z-index: 599;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(2px);
+  }
+  .sidebar-overlay.open { display: block; }
+
   /* Responsive */
   @media (max-width: 768px) {
-    .sidebar { display: none; }
-    .section { padding: 24px 20px; }
+    .mobile-topbar { display: flex; }
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 600;
+      width: 280px; transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      padding-top: 64px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main { padding-top: 52px; }
+    .section { padding: 24px 16px; }
     .order-sim { grid-template-columns: 1fr; }
+    .cf-row { grid-template-columns: 1fr; }
+    .card-grid { grid-template-columns: 1fr; }
+    .risk-result { grid-template-columns: 1fr 1fr; }
   }
 
   /* Animations */
@@ -541,8 +579,17 @@
 <!-- ===================== END COVER ===================== -->
 
 <div class="shell" id="main-shell" style="display:none;">
+
+  <!-- Mobile topbar -->
+  <div class="mobile-topbar">
+    <span class="mobile-topbar-title">📈 Trading 101</span>
+    <button class="hamburger" id="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+
+  <!-- Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="main-sidebar">
     <div class="sidebar-logo">
       <h1>📈 Trading 101</h1>
       <p>Interactive Learning Manual</p>
@@ -1162,6 +1209,25 @@
 let completedSections = new Set();
 let xp = 0;
 
+// ===================== MOBILE MENU =====================
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('main-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const btn = document.getElementById('hamburger-btn');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById('main-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const btn = document.getElementById('hamburger-btn');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+  btn.classList.remove('open');
+}
+
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1171,6 +1237,7 @@ function showSection(id) {
   });
   completedSections.add(id);
   updateProgress();
+  closeMobileMenu(); // cierra el menú al navegar en mobile
   if (id === 'quiz') initQuiz();
   if (id === 'glossary') initGlossary();
   if (id === 'charts') { drawCandleChart(); setTimeout(() => initSRChart(), 100); }
